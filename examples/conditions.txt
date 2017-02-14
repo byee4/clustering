@@ -1,0 +1,10 @@
+sample	treat	response	time
+s1	treatment1	outcome1	time1
+s2	treatment1	outcome1	time2
+s3	treatment1	outcome1	time1
+s4	treatment1	outcome1	time1
+s5	treatment1	outcome1	time2
+s6	treatment2	outcome2	time1
+s7	treatment2	outcome2	time2
+s8	treatment2	outcome2	time1
+

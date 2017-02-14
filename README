@@ -1,0 +1,9 @@
+installs may require some stuff:
+
+conda install mkl mkl-service numpy pandas sklearn bokeh matplotlib
+
+usage (to plot log2(rpkm) from featurecounts.txt, given a conditions file, saving principle components to file) :
+
+python PCA_runner.py -l2 -f -rpkm -i featureCounts.txt -o pca.png -c conditions.tsv -cc 'treatmenet' -pc
+
+python PCA_runner.py -i iris.txt -o iris.png -c iris.names -cc names
