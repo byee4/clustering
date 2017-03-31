@@ -3,42 +3,38 @@ import matplotlib
 matplotlib.use('Agg')
 import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn.manifold import TSNE
+from sklearn.cluster import KMeans
 from bokeh.models import ColumnDataSource
 
 import color_helpers as ch
 
 __all__ = []
 __version__ = 0.1
-__date__ = '2017-2-13'
-__updated__ = '2017-2-13'
+__date__ = '2017-2-14'
+__updated__ = '2017-2-14'
 
 
-class _TSNEPlotter():
+class _KMeansPlotter():
 
-    def __init__(self, expt, cmap = 'Purples',
-                 method = 'exact', random_state = 1):
+    def __init__(self, expt, n_clusters, cmap = 'Purples'):
         """
 
         Parameters
         ----------
-        expt : Experiment
-        cmap : basestring
-        method : basestring
-            gradient calculation algorithm
-            @see TSNE(method)
-        random_state : int
-            tsne random state for tsne seed generator
-            @see TSNE(random_state)
+        data : pandas.DataFrame
+            A table of gene expression in the format (genes, samples)
+        colors : pandas.Dataframe
+            A table defining the color and condition for each sample name
+
         """
-        self.method = method
-        self.random_state = random_state
-        self.cmap = plt.get_cmap(cmap)
         self.expt = expt
-        self.tcomp = self._fit_transform()
+        self.n_clusters = n_clusters
+        self.cmap = plt.get_cmap(cmap)
+
+        self.data = expt.counts.data
+        self.colors = expt.metadata
+        self.kmeans = self._fit_transform()
         self.source = self._columnsource()
-
-
 
     def _fit_transform(self):
         """
@@ -50,10 +46,13 @@ class _TSNEPlotter():
             table containing principle components ordered by variance
         """
 
-        manifolder = TSNE(method=self.method, random_state = self.random_state)
-        tcomp = manifolder.fit_transform(self.expt.counts.data.T)
-        tcomp = pd.DataFrame(tcomp, index=self.expt.counts.data.columns)
-        return tcomp
+        k = KMeans(n_clusters=self.n_clusters)
+        transf = k.fit_transform(self.expt.counts.data.T)
+        fit = k.fit_predict(self.expt.counts.data.T)
+        print(fit[:100]) # TODO change shape based on classification.
+        transf = pd.DataFrame(transf, index=self.expt.counts.data.columns)
+
+        return transf
 
     def _columnsource(self):
         """
@@ -72,9 +71,9 @@ class _TSNEPlotter():
         )
         return ColumnDataSource(
             data=dict(
-                x=self.tcomp[0],
-                y=self.tcomp[1],
-                idx=self.tcomp.index,
+                x=self.kmeans[0],
+                y=self.kmeans[1],
+                idx=self.kmeans.index,
                 fill_color=self.expt.metadata['hex'],
             )
         )
@@ -95,7 +94,7 @@ class _TSNEPlotter():
             ax = plt.gca()
 
         for c in set(self.expt.metadata['condition']):
-            indices = self.tcomp.ix[self.expt.metadata[self.expt.metadata['condition'] == c].index]
+            indices = self.kmeans.ix[self.expt.metadata[self.expt.metadata['condition'] == c].index]
 
             color = self.expt.metadata[self.expt.metadata['condition'] == c]['color']
             rgbs = [self.cmap(n / self.expt.metadata['color'].max()) for n in color]
@@ -161,7 +160,8 @@ class _TSNEPlotter():
     def update_cmap(self):
         pass
 
-def tsneplot(expt, cmap, ax=None, bokeh=False):
+
+def kmeansplot(expt, n_clusters, cmap, ax=None, bokeh=False):
     """
 
     Parameters
@@ -179,6 +179,6 @@ def tsneplot(expt, cmap, ax=None, bokeh=False):
     _PCAPlotter object
 
     """
-    plotter = _TSNEPlotter(expt, cmap)
+    plotter = _KMeansPlotter(expt, n_clusters, cmap)
     plotter.plot(bokeh=bokeh, ax=ax)
     return plotter

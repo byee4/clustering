@@ -10,9 +10,7 @@ import matplotlib.pyplot as plt
 from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
 
-import PCAPlotter
-import TSNEPlotter
-import ICAPlotter
+import KMeansPlotter
 import color_helpers as ch
 from Experiment import Experiment
 
@@ -111,6 +109,11 @@ def main(argv=None):  # IGNORE:C0111
                         default='PCA',
                         type=str,
                         help="Algorithm ([PCA] by default, or 'tSNE')")
+    parser.add_argument("-n", "--num-clusters",
+                        dest="n",
+                        type=int,
+                        default=3,
+                        help="number of k clusters")
 
     # Process arguments
     args = parser.parse_args()
@@ -122,6 +125,7 @@ def main(argv=None):  # IGNORE:C0111
     conditions_file = args.conditions
     conditions_col = args.conditions_col
     algorithm = args.algorithm.upper()
+    n_clusters = args.n
 
     is_featurecounts = args.featureCounts
     is_rpkm = args.rpkm
@@ -218,27 +222,15 @@ def main(argv=None):  # IGNORE:C0111
 
     """ plot stuff """
     fig, ax = plt.subplots()
-
-    if algorithm == 'PCA':
-        plotter = PCAPlotter.pcaplot(
+    if algorithm == 'KMEANS':
+        plotter = KMeansPlotter.kmeansplot(
             experiment,
+            n_clusters,
             cmap,
             ax=ax, bokeh=False)
-        plotter.prcomp.to_csv(prefix + '.pcacomp.txt', sep=SEP)
-    elif algorithm == 'TSNE':
-        plotter = TSNEPlotter.tsneplot(
-            experiment,
-            cmap,
-            ax=ax, bokeh=False)
-        plotter.tcomp.to_csv(prefix + '.tsnecomp.txt', sep=SEP)
-    elif algorithm == 'ICA':
-        plotter = ICAPlotter.icaplot(
-            experiment,
-            cmap,
-            ax=ax, bokeh=False)
-        plotter.icacomp.to_csv(prefix + '.icacomp.txt', sep=SEP)
+        plotter.kmeans.to_csv(prefix + '.kmeans.txt', sep=SEP)
     else:
-        print("invalid algorithm. Exiting..")
+        print("invalid algorithm. Exiting...")
         sys.exit(1)
     leg = plt.legend(loc='best', shadow=False, frameon = 1)
 
