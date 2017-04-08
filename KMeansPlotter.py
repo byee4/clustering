@@ -42,17 +42,19 @@ class _KMeansPlotter():
 
         Returns
         -------
-        prcomp : pandas.DataFrame
-            table containing principle components ordered by variance
+        transf : pandas.DataFrame
+            table containing kmeans values
         """
 
-        k = KMeans(n_clusters=self.n_clusters)
-        transf = k.fit_transform(self.expt.counts.data.T)
-        fit = k.fit_predict(self.expt.counts.data.T)
-        print(fit[:100]) # TODO change shape based on classification.
-        transf = pd.DataFrame(transf, index=self.expt.counts.data.columns)
+        k = KMeans(n_clusters=3) #self.n_clusters)
+        transf = k.fit_transform(self.data.T)
 
-        return transf
+        fit = k.fit_predict(self.data.T)
+        # print(fit[:100]) # TODO change shape based on classification.
+        transf = pd.DataFrame(transf, index=self.data.columns)
+        labels = pd.DataFrame(k.labels_, columns=['label'], index=self.data.columns)
+        df = pd.merge(labels, transf, how='left', left_index=True, right_index=True)
+        return df
 
     def _columnsource(self):
         """
@@ -63,7 +65,6 @@ class _KMeansPlotter():
             Object which allows set_color() method to
             interactively update colors in bokeh.
         """
-
         self.expt.metadata['hex'] = ch.expr_series_to_hex(
             self.expt.metadata['color'],
             self.cmap,
@@ -92,14 +93,15 @@ class _KMeansPlotter():
         """
         if ax is None:
             ax = plt.gca()
-
+        colors = ['red','blue','green']
+        i=0
         for c in set(self.expt.metadata['condition']):
             indices = self.kmeans.ix[self.expt.metadata[self.expt.metadata['condition'] == c].index]
-
+            color = indices['label']
             color = self.expt.metadata[self.expt.metadata['condition'] == c]['color']
-            rgbs = [self.cmap(n / self.expt.metadata['color'].max()) for n in color]
 
-            ax.scatter(indices[0], indices[1], label=c, color=rgbs)
+            ax.scatter(indices[0], indices[1], label=c, color=colors[i])
+            i+=1
 
     def _bokeh(self, ax):
         """
@@ -115,6 +117,7 @@ class _KMeansPlotter():
         ax.scatter('x', 'y', radius=0.1,
                    fill_color='fill_color', fill_alpha=0.6,
                    line_color=None, source=self.source)
+
     def set_color(self, gene_id):
         """
         Updates self.ColumnDataSource 'fill_color' column to interactively
@@ -179,6 +182,7 @@ def kmeansplot(expt, n_clusters, cmap, ax=None, bokeh=False):
     _PCAPlotter object
 
     """
+
     plotter = _KMeansPlotter(expt, n_clusters, cmap)
     plotter.plot(bokeh=bokeh, ax=ax)
     return plotter

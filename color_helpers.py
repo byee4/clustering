@@ -8,6 +8,7 @@ def hex_to_cmap(num_to_generate):
     hexes = generate_hex(num_to_generate)
     return ListedColormap(hexes)
 
+
 def float_to_hex(c, cmap):
     """
     Given a float value, return the hex color representation.
@@ -23,6 +24,7 @@ def float_to_hex(c, cmap):
     """
     c = cmap(c)
     return '#%02x%02x%02x' % (c[0] * 255, c[1] * 255, c[2] * 255)
+
 
 def generate_hex(num_to_generate):
     """
@@ -112,6 +114,7 @@ def expr_series_to_hex(expr, cmap='Purples', is_norm=True):
         lambda x: float_to_hex(x, cmap)
     )
 
+
 def expr_to_rgb(expr, cmap='Purples', is_norm=True):
     """
     From a list of expression values, return a list of rgb values.
@@ -151,8 +154,9 @@ def color_by_condition(df, col_string):
         column for which to map colors to
     Returns
     -------
-    dictionary of {sample:{color:COLOR, condition:CONDITION}, } for each sample
-    for each condition in df[col_string]
+    colormapped : dict
+        dictionary of {sample:{color:(int)COLOR, condition:(string)CONDITION}, }
+        for each sample for each condition in df[col_string]
     """
     try:
         max_conditions = set(df[col_string])

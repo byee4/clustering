@@ -46,28 +46,12 @@ def main(argv=None):  # IGNORE:C0111
     parser.add_argument("-o", "--output",
                         dest="output",
                         required=True,
-                        help='output pdf/svg/png (will also output PC " + \
-                        "components as [prefix].txt')
+                        help='output pdf/svg/png (will also output kmeans " + \
+                        "intermediates as [prefix].txt')
     parser.add_argument("-i", "--input",
                         dest="input",
                         required=True,
-                        help="input matrix as featureCounts or matrix")
-    parser.add_argument("-rpkm", "--rpkm",
-                        dest="rpkm",
-                        default=False,
-                        action='store_true',
-                        help="flag converts expression counts to rpkm " + \
-                             "(requires featureCounts)")
-    parser.add_argument("-l2", "--log2",
-                        dest="log2",
-                        default=False,
-                        action='store_true',
-                        help="flag log2-transforms expression counts")
-    parser.add_argument("-f", "--featureCounts",
-                        dest="featureCounts",
-                        default=False,
-                        action='store_true',
-                        help="True if featurecounts-format")
+                        help="input matrix (1st col is index)")
     parser.add_argument("-V", "--version",
                         action='version',
                         version=program_version_message)
@@ -75,19 +59,8 @@ def main(argv=None):  # IGNORE:C0111
                         dest="cutoff",
                         type=int,
                         default=0,
-                        help="any more than this level (reads) will not " + \
+                        help="any more than this number will not " + \
                              "be counted.")
-    parser.add_argument("-s", "--subset",
-                        dest="subset",
-                        default=None,
-                        help="line-delimited file containing the genes of " + \
-                             "interest")
-    parser.add_argument("-g", "--gene",
-                        dest="gene_id",
-                        default=None,
-                        type=str,
-                        help="gene id of expression values by which to " + \
-                             "color the PCA.")
     parser.add_argument("-c", "--conditions",
                         dest="conditions",
                         default=None,
@@ -106,9 +79,9 @@ def main(argv=None):  # IGNORE:C0111
                         help="True if we want to keep all intermediates")
     parser.add_argument("-a", "--algorithm",
                         dest="algorithm",
-                        default='PCA',
+                        default='kmeans',
                         type=str,
-                        help="Algorithm ([PCA] by default, or 'tSNE')")
+                        help="Algorithm ([kmeans] by default, or 'NOTHING')")
     parser.add_argument("-n", "--num-clusters",
                         dest="n",
                         type=int,
@@ -119,20 +92,16 @@ def main(argv=None):  # IGNORE:C0111
     args = parser.parse_args()
 
     # io
-    counts_file = args.input
+    input_file = args.input
     output_file = args.output
-    subset_file = args.subset
     conditions_file = args.conditions
     conditions_col = args.conditions_col
     algorithm = args.algorithm.upper()
     n_clusters = args.n
 
-    is_featurecounts = args.featureCounts
-    is_rpkm = args.rpkm
-    is_log2 = args.log2
+
     keep_intermediates = args.keep
     sum_cutoff = args.cutoff
-    gene_id = args.gene_id
 
     # prefix
     prefix = os.path.splitext(output_file)[0]
@@ -155,36 +124,10 @@ def main(argv=None):  # IGNORE:C0111
     """ read in counts file """
     logger.info(sys.argv)
     experiment = Experiment(
-        counts_file=counts_file,
+        matrix_file=input_file,
         conditions_file=conditions_file,
         conditions_col=conditions_col,
-        gene_id=gene_id,
-        is_featurecounts=is_featurecounts,
     )
-
-    """ do pca on select genes only """
-    if subset_file and os.path.exists(subset_file):
-        logger.info("SUBSET on: {}".format(subset_file))
-        logger.info(
-            "SUBSET SIZE (before): {}".format(
-                experiment.counts.data.shape[0]
-            )
-        )
-        experiment.counts.subset(subset_file)
-        if keep_intermediates:
-            experiment.counts.data.to_csv(prefix + ".subset.txt",sep=SEP)
-        logger.info(
-            "SUBSET SIZE (after): {}".format(
-                experiment.counts.data.shape[0]
-            )
-        )
-
-    """ rpkm """
-    if is_rpkm:
-        logger.info("RPKM FLAG ON")
-        experiment.counts.as_rpkm()
-        if keep_intermediates:
-            experiment.counts.data.to_csv(prefix + ".rpkm.txt", sep=SEP)
 
     """ removes rows whos sum (reads) < cutoff """
     if sum_cutoff > 0:
@@ -202,13 +145,6 @@ def main(argv=None):  # IGNORE:C0111
                 experiment.counts.data.shape[0]
             )
         )
-
-    """ log2 """
-    if is_log2:
-        logger.info("LOG2 FLAG ON")
-        experiment.counts.as_log2(1)
-        if keep_intermediates:
-            experiment.counts.data.to_csv(prefix + ".log2.txt", sep=SEP)
 
     """ save metadata """
     if keep_intermediates:
