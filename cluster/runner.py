@@ -10,9 +10,10 @@ import matplotlib.pyplot as plt
 from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
 
-import KMeansPlotter
-import color_helpers as ch
+import Plotter
+import helper_functions as ch
 from Experiment import Experiment
+from collections import OrderedDict
 
 DEBUG = 0
 TESTRUN = 0
@@ -85,8 +86,11 @@ def main(argv=None):  # IGNORE:C0111
     parser.add_argument("-n", "--num-clusters",
                         dest="n",
                         type=int,
-                        default=3,
-                        help="number of k clusters")
+                        default=1,
+                        help="number of k clusters "
+                             "(if different than the number of conditions)"
+                             " Default: number of conditions in conditions file"
+                        )
 
     # Process arguments
     args = parser.parse_args()
@@ -146,6 +150,8 @@ def main(argv=None):  # IGNORE:C0111
             )
         )
 
+
+
     """ save metadata """
     if keep_intermediates:
         experiment.metadata.to_csv(prefix + ".metadata.txt", sep=SEP)
@@ -157,18 +163,34 @@ def main(argv=None):  # IGNORE:C0111
         cmap = 'Purples'
 
     """ plot stuff """
+
     fig, ax = plt.subplots()
     if algorithm == 'KMEANS':
-        plotter = KMeansPlotter.kmeansplot(
+        """ if k-means, get number of clusters """
+        if n_clusters == 1:
+            n_clusters = len(set(experiment.metadata['condition']))
+
+        plotter = Plotter.kmeansplot(
             experiment,
             n_clusters,
             cmap,
             ax=ax, bokeh=False)
-        plotter.kmeans.to_csv(prefix + '.kmeans.txt', sep=SEP)
+        plotter.kclust.to_csv(prefix + '.kmeans.txt', sep=SEP)
     else:
         print("invalid algorithm. Exiting...")
         sys.exit(1)
-    leg = plt.legend(loc='best', shadow=False, frameon = 1)
+
+    handles, labels = plt.gca().get_legend_handles_labels()
+    by_label = OrderedDict(zip(labels, handles))
+    leg = plt.legend(
+        by_label.values(),
+        by_label.keys(),
+        loc='best',
+        shadow=False,
+        frameon=1
+    )
+
+    # leg = plt.legend(loc='best', shadow=False, frameon = 1)
 
     leg.get_frame().set_edgecolor('b')
     leg.get_frame().set_facecolor('w')

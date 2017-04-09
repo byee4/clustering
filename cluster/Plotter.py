@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 from bokeh.models import ColumnDataSource
 
-import color_helpers as ch
+import helper_functions as h
 
 __all__ = []
 __version__ = 0.1
@@ -14,7 +14,7 @@ __date__ = '2017-2-14'
 __updated__ = '2017-2-14'
 
 
-class _KMeansPlotter():
+class _Plotter():
 
     def __init__(self, expt, n_clusters, cmap = 'Purples'):
         """
@@ -30,11 +30,18 @@ class _KMeansPlotter():
         self.expt = expt
         self.n_clusters = n_clusters
         self.cmap = plt.get_cmap(cmap)
-
         self.data = expt.counts.data
-        self.colors = expt.metadata
-        self.kmeans = self._fit_transform()
-        self.source = self._columnsource()
+        self.kmeans, self.kclust = self._fit_transform()
+
+    def _merge_metadata_and_cluster_data(self):
+        merged = pd.merge(
+            self.expt.metadata,
+            self.kclust,
+            how='left',
+            left_index=True,
+            right_index=True
+        )
+        return merged
 
     def _fit_transform(self):
         """
@@ -46,38 +53,20 @@ class _KMeansPlotter():
             table containing kmeans values
         """
 
-        k = KMeans(n_clusters=3) #self.n_clusters)
+        k = KMeans(n_clusters=self.n_clusters, random_state=1) #self.n_clusters)
         transf = k.fit_transform(self.data.T)
-
-        fit = k.fit_predict(self.data.T)
+        # fit = k.fit_predict(self.data.T)
         # print(fit[:100]) # TODO change shape based on classification.
         transf = pd.DataFrame(transf, index=self.data.columns)
         labels = pd.DataFrame(k.labels_, columns=['label'], index=self.data.columns)
-        df = pd.merge(labels, transf, how='left', left_index=True, right_index=True)
-        return df
-
-    def _columnsource(self):
-        """
-
-        Returns
-        -------
-        ColumnDataSource : bokeh.models.ColumnDataSource
-            Object which allows set_color() method to
-            interactively update colors in bokeh.
-        """
-        self.expt.metadata['hex'] = ch.expr_series_to_hex(
-            self.expt.metadata['color'],
-            self.cmap,
-            is_norm=True
+        self.expt.metadata = pd.merge( # update metadata
+            labels,
+            self.expt.metadata,
+            how='left',
+            left_index=True,
+            right_index=True
         )
-        return ColumnDataSource(
-            data=dict(
-                x=self.kmeans[0],
-                y=self.kmeans[1],
-                idx=self.kmeans.index,
-                fill_color=self.expt.metadata['hex'],
-            )
-        )
+        return k, transf
 
     def _matplotlib(self, ax=None):
         """
@@ -93,54 +82,20 @@ class _KMeansPlotter():
         """
         if ax is None:
             ax = plt.gca()
-        colors = ['red','blue','green']
-        i=0
-        for c in set(self.expt.metadata['condition']):
-            indices = self.kmeans.ix[self.expt.metadata[self.expt.metadata['condition'] == c].index]
-            color = indices['label']
-            color = self.expt.metadata[self.expt.metadata['condition'] == c]['color']
 
-            ax.scatter(indices[0], indices[1], label=c, color=colors[i])
-            i+=1
+        df = self._merge_metadata_and_cluster_data()
 
-    def _bokeh(self, ax):
-        """
+        for _, row in df.iterrows():
+            ax.scatter(
+                row[0], row[1],
+                label=row['condition'],
+                color=self.int_to_color(row['label']),
+                marker=row['marker']
+            )
 
-        Parameters
-        ----------
-        ax : bokeh.plotting.figure.Figure
-
-        Returns
-        -------
-
-        """
-        ax.scatter('x', 'y', radius=0.1,
-                   fill_color='fill_color', fill_alpha=0.6,
-                   line_color=None, source=self.source)
-
-    def set_color(self, gene_id):
-        """
-        Updates self.ColumnDataSource 'fill_color' column to interactively
-        change point colors.
-
-        Parameters
-        ----------
-        colors : pandas.DataFrame
-            Table describing samples as row indices, 'condition' and
-            corresponding 'color' as columns
-
-        Returns
-        -------
-
-        """
-        self.expt.recolor(gene_id)
-        self.expt.metadata['hex'] = ch.expr_series_to_hex(
-            self.expt.metadata['color'],
-            self.cmap,
-            is_norm=True
-        )
-
-        self.source.data['fill_color'] = self.expt.metadata['hex']
+    def int_to_color(self, i):
+        colors = ['blue','red','green']
+        return colors[i]
 
     def plot(self, bokeh=False, ax=None):
         """
@@ -183,6 +138,6 @@ def kmeansplot(expt, n_clusters, cmap, ax=None, bokeh=False):
 
     """
 
-    plotter = _KMeansPlotter(expt, n_clusters, cmap)
+    plotter = _Plotter(expt, n_clusters, cmap)
     plotter.plot(bokeh=bokeh, ax=ax)
     return plotter

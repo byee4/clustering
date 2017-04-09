@@ -141,7 +141,7 @@ def expr_to_rgb(expr, cmap='Purples', is_norm=True):
     return rgbs
 
 
-def color_by_condition(df, col_string):
+def shape_by_condition(df, col_string):
     """
     Takes df of conditions (rows of samples, cols of conditions)
     and returns a list of colors matching each distinct condition.
@@ -158,19 +158,22 @@ def color_by_condition(df, col_string):
         dictionary of {sample:{color:(int)COLOR, condition:(string)CONDITION}, }
         for each sample for each condition in df[col_string]
     """
+    markers = ['o', 'v', '*', '<', '>', '8', 's', 'p', '^', 'h', 'H', 'D', 'd', 'P', 'X']
+
     try:
         max_conditions = set(df[col_string])
     except KeyError:
         print("{} does not exist as key in dataframe".format(col_string))
         print("reverting to {}".format(df.columns[0]))
         max_conditions = set(df[df.columns[0]])
-    colormap = {}
+    print("Max conditions: {}".format(max_conditions))
+    marker_map = {}
     c = 0
     for condition in max_conditions:
-        colormap[condition] = {
-            'color':c,
+        marker_map[condition] = {
+            'marker':markers[c],
             'condition':condition
         }
         c+=1
-    colormapped = df[col_string].apply(lambda x: colormap[x])
-    return dict(colormapped)
+    mapped = df[col_string].apply(lambda x: marker_map[x])
+    return dict(mapped)

@@ -1,6 +1,7 @@
-import ExpressionTable
 import pandas as pd
-import color_helpers as ch
+
+import ExpressionTable
+import helper_functions as h
 from ExpressionTable import ExpressionTable
 
 
@@ -58,10 +59,10 @@ class Experiment:
         pandas.DataFrame containing samples, color, condition information.
 
         """
-        colors = {}
+        marker_map = {}
         for col in self.counts.data.columns:
-            colors[col] = {'color': 'blue', 'condition': 'condition'}
-        return pd.DataFrame(colors).T
+            marker_map[col] = {'marker': 'o', 'condition': 'condition'}
+        return pd.DataFrame(marker_map, index=self.counts.data.index).T
 
     def _generate_metadata_from_conditions(self):
         """
@@ -78,9 +79,14 @@ class Experiment:
             self.source,
             index_col=0
         )
-        colors = ch.color_by_condition(conditions_df, self.condition_of_interest)
+        shapes = h.shape_by_condition(conditions_df, self.condition_of_interest)
+        shapes = pd.DataFrame(shapes)
+
+        shapes.columns = [str(c) for c in shapes.columns]
+
+        shapes = shapes.T
         # self.cmap = ch.hex_to_cmap(conditions_df.shape[0]) # this can be done better.
-        return pd.DataFrame(colors).T
+        return shapes
 
     def recolor(self, gene_id):
         self.gene_of_interest = gene_id

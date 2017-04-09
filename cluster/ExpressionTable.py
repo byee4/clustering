@@ -17,8 +17,8 @@ class ExpressionTable:
 
         """
         data = pd.read_table(data_file, index_col=0)
-
-        self._test_iris()
+        data.columns = [str(c) for c in data.columns]
+        # self._test_iris()
         self.data = data
         self._pseudocount = 0
         self._is_log2 = False
@@ -26,16 +26,21 @@ class ExpressionTable:
 
     def _test_iris(self):
         iris = datasets.load_iris()
-        petal_data = iris.data[:, 2:]  # get only petal features, which are the third and fourth values in each sample
+        petal_data = iris.data # [:, 2:]  # get only petal features, which are the third and fourth values in each sample
 
         # perform k-means analysis on iris data
 
         # there are only 3 iris flower groups: 'setosa', 'versicolor', 'virginica'
 
-        kmean = KMeans(n_clusters=3)  # n_clusters asks for only 3 groupings
-        kmean.fit(petal_data)
+        kmean = KMeans(n_clusters=3, random_state=1)  # n_clusters asks for only 3 groupings
+        # print kmean.fit(petal_data)
+        # print kmean.fit_transform(petal_data)
+
         # print(kmean.labels_)
-        # pd.DataFrame(kmean.fit(petal_data)).to_csv('/home/bay001/projects/codebase/clustering/examples/iris_example.test.txt')
+        pd.DataFrame(kmean.fit_transform(petal_data)).to_csv(
+            '/home/bay001/projects/codebase/clustering/examples/iris_example.test.txt',
+            sep='\t'
+        )
 
     def as_log2(self, pseudocount=1):
         """
