@@ -88,6 +88,15 @@ class Experiment:
         # self.cmap = ch.hex_to_cmap(conditions_df.shape[0]) # this can be done better.
         return shapes
 
+    def update_metadata(self, df):
+        self.metadata = pd.merge(  # update metadata
+            self.metadata,
+            df,
+            how='left',
+            left_index=True,
+            right_index=True
+        )
+
     def recolor(self, gene_id):
         self.gene_of_interest = gene_id
         self.metadata = self._generate_metadata_from_gene_expression()

@@ -166,7 +166,7 @@ def shape_by_condition(df, col_string):
         print("{} does not exist as key in dataframe".format(col_string))
         print("reverting to {}".format(df.columns[0]))
         max_conditions = set(df[df.columns[0]])
-    print("Max conditions: {}".format(max_conditions))
+    # print("Max conditions: {}".format(max_conditions))
     marker_map = {}
     c = 0
     for condition in max_conditions:

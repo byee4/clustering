@@ -44,53 +44,76 @@ def main(argv=None):  # IGNORE:C0111
 
     # Setup argument parser
     parser = ArgumentParser(formatter_class=RawDescriptionHelpFormatter)
-    parser.add_argument("-o", "--output",
-                        dest="output",
-                        required=True,
-                        help='output pdf/svg/png (will also output kmeans " + \
-                        "intermediates as [prefix].txt')
-    parser.add_argument("-i", "--input",
-                        dest="input",
-                        required=True,
-                        help="input matrix (1st col is index)")
-    parser.add_argument("-V", "--version",
-                        action='version',
-                        version=program_version_message)
-    parser.add_argument("-sc", "--sum_cutoff",
-                        dest="cutoff",
-                        type=int,
-                        default=0,
-                        help="any more than this number will not " + \
-                             "be counted.")
-    parser.add_argument("-c", "--conditions",
-                        dest="conditions",
-                        default=None,
-                        help="table of (row:samples,col:conditions) that " + \
-                             "define sample conditions")
-    parser.add_argument("-cc", "--conditions-col",
-                        dest="conditions_col",
-                        default=None,
-                        help="column within the conditions file " + \
-                             "(-cc flag must be on)" + \
-                             "by which to categorize the plot legend.")
-    parser.add_argument("-k", "--keep-intermediates",
-                        dest="keep",
-                        default=False,
-                        action='store_true',
-                        help="True if we want to keep all intermediates")
-    parser.add_argument("-a", "--algorithm",
-                        dest="algorithm",
-                        default='kmeans',
-                        type=str,
-                        help="Algorithm ([kmeans] by default, or 'NOTHING')")
-    parser.add_argument("-n", "--num-clusters",
-                        dest="n",
-                        type=int,
-                        default=1,
-                        help="number of k clusters "
-                             "(if different than the number of conditions)"
-                             " Default: number of conditions in conditions file"
-                        )
+    parser.add_argument(
+        "-o", "--output",
+        dest="output",
+        required=True,
+        help="output pdf/svg/png (will also output kmeans " + \
+             "intermediates as [prefix].txt"
+    )
+    parser.add_argument(
+        "-i", "--input",
+        dest="input",
+        required=True,
+        help="input matrix (1st col is index)"
+    )
+    parser.add_argument(
+        "-V", "--version",
+        action='version',
+        version=program_version_message
+    )
+    parser.add_argument(
+        "-sc", "--sum_cutoff",
+        dest="cutoff",
+        type=int,
+        default=0,
+        help="any more than this number will not be counted."
+    )
+    parser.add_argument(
+        "-c", "--conditions",
+        dest="conditions",
+        default=None,
+        help="table of (row:samples,col:conditions) that " + \
+             "define sample conditions"
+    )
+    parser.add_argument(
+        "-cc", "--conditions-col",
+        dest="conditions_col",
+        default=None,
+        help="column within the conditions file " + \
+             "(-cc flag must be on)" + \
+             "by which to categorize the plot legend."
+    )
+    parser.add_argument(
+        "-k", "--keep-intermediates",
+        dest="keep",
+        default=False,
+        action='store_true',
+        help="True if we want to keep all intermediates"
+    )
+    parser.add_argument(
+        "-a", "--algorithm",
+        dest="algorithm",
+        default='kmeans',
+        type=str,
+        help="Algorithm ([kmeans] by default, or 'NOTHING')"
+    )
+    parser.add_argument(
+        "-n", "--num-clusters",
+        dest="n",
+        type=int,
+        default=1,
+        help="number of k clusters " + \
+             "(if different than the number of conditions)" + \
+             " Default: number of conditions in conditions file"
+    )
+    parser.add_argument(
+        "--seed",
+        dest="seed",
+        type=int,
+        default=0,
+        help="Random seed for testing purposes."
+    )
 
     # Process arguments
     args = parser.parse_args()
@@ -102,7 +125,7 @@ def main(argv=None):  # IGNORE:C0111
     conditions_col = args.conditions_col
     algorithm = args.algorithm.upper()
     n_clusters = args.n
-
+    seed = args.seed
 
     keep_intermediates = args.keep
     sum_cutoff = args.cutoff
@@ -150,12 +173,6 @@ def main(argv=None):  # IGNORE:C0111
             )
         )
 
-
-
-    """ save metadata """
-    if keep_intermediates:
-        experiment.metadata.to_csv(prefix + ".metadata.txt", sep=SEP)
-
     """ get appropriate cmap """
     if conditions_file is not None and conditions_col is not None:
         cmap = ch.hex_to_cmap(experiment.metadata.shape[1])
@@ -174,7 +191,10 @@ def main(argv=None):  # IGNORE:C0111
             experiment,
             n_clusters,
             cmap,
-            ax=ax, bokeh=False)
+            seed,
+            ax=ax,
+            bokeh=False,
+        )
         plotter.kclust.to_csv(prefix + '.kmeans.txt', sep=SEP)
     else:
         print("invalid algorithm. Exiting...")
@@ -187,15 +207,22 @@ def main(argv=None):  # IGNORE:C0111
         by_label.keys(),
         loc='best',
         shadow=False,
-        frameon=1
+        frameon=1,
     )
 
-    # leg = plt.legend(loc='best', shadow=False, frameon = 1)
-
+    for i in leg.legendHandles:
+        i.set_color('black')
     leg.get_frame().set_edgecolor('b')
     leg.get_frame().set_facecolor('w')
     fig.savefig(output_file)
 
+
+
+    """ save metadata """
+    if keep_intermediates:
+        experiment.metadata.to_csv(prefix + ".metadata.txt", sep=SEP)
+
+    # leg = plt.legend(loc='best', shadow=False, frameon = 1)
 
 
 if __name__ == "__main__":

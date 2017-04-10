@@ -1,0 +1,10 @@
+2017-04-10 11:38:21,946 - PCA_runner - INFO - starting program
+2017-04-10 11:38:21,947 - PCA_runner - INFO - ['cluster/runner.py', '--input', '/home/bay001/projects/codebase/clustering/examples/iris.txt', '--output', 'examples/iris_example.png', '--conditions', '/home/bay001/projects/codebase/clustering/examples/iris.names', '--conditions-col', 'names', '-k', '-a', 'kmeans', '-n', '1']
+2017-04-10 11:48:55,511 - PCA_runner - INFO - starting program
+2017-04-10 11:48:55,512 - PCA_runner - INFO - ['cluster/runner.py', '--input', '/home/bay001/projects/codebase/clustering/examples/iris.txt', '--output', 'examples/iris_example.png', '--conditions', '/home/bay001/projects/codebase/clustering/examples/iris.names', '--conditions-col', 'names', '-k', '-a', 'kmeans', '-n', '1']
+2017-04-10 11:49:31,564 - PCA_runner - INFO - starting program
+2017-04-10 11:49:31,564 - PCA_runner - INFO - ['cluster/runner.py', '--input', '/home/bay001/projects/codebase/clustering/examples/iris.txt', '--output', 'examples/iris_example.png', '--conditions', '/home/bay001/projects/codebase/clustering/examples/iris.names', '--conditions-col', 'names', '-k', '-a', 'kmeans', '-n', '1']
+2017-04-10 11:49:49,155 - PCA_runner - INFO - starting program
+2017-04-10 11:49:49,155 - PCA_runner - INFO - ['cluster/runner.py', '--input', '/home/bay001/projects/codebase/clustering/examples/iris.txt', '--output', 'examples/iris_example.png', '--conditions', '/home/bay001/projects/codebase/clustering/examples/iris.names', '--conditions-col', 'names', '-k', '-a', 'kmeans', '-n', '1']
+2017-04-10 11:50:36,816 - PCA_runner - INFO - starting program
+2017-04-10 11:50:36,817 - PCA_runner - INFO - ['cluster/runner.py', '--input', '/home/bay001/projects/codebase/clustering/examples/iris.txt', '--output', 'examples/iris_example.png', '--conditions', '/home/bay001/projects/codebase/clustering/examples/iris.names', '--conditions-col', 'names', '-k', '-a', 'kmeans', '-n', '1', '--seed', '1']
