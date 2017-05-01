@@ -12,7 +12,7 @@ setup(
     name = "clustering",
     version = "0.0.1",
     author = "Brian",
-    author_email = "byee4@gmail.com",
+    author_email = "bay001@ucsd.edu",
     description = ("clustering tools"),
     license = "BSD",
     keywords = "clustering",
@@ -24,6 +24,8 @@ setup(
         "License :: OSI Approved :: BSD License",
     ],
     include_package_data=True,
+    packages=['cluster'],
+    package_dir={'cluster':'cluster/'},
     install_requires=[
         'numpy>=1.10',
         'pandas>=0.16',
@@ -32,5 +34,9 @@ setup(
         'seaborn>=0.7',
         'bokeh>=0.10.0'
     ],
-
+    entry_points={
+        'console_scripts': [
+            'cluster = cluster.cluster:main'
+        ]
+    },
 )

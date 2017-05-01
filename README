@@ -4,7 +4,7 @@ conda install mkl mkl-service numpy pandas sklearn bokeh matplotlib
 
 Usage:
 
-python cluster/runner.py --input examples/iris.txt \
+cluster --input examples/iris.txt \
 --output examples/iris_example.png \
 --conditions iris.names \
 --conditions-col names \
